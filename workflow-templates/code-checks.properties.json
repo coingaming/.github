@@ -1,0 +1,14 @@
+{
+    "name": "Elixir compile and check",
+    "description": "Compile Yolo-style Elixir projects and run code checks",
+    "iconName": "example-icon",
+    "categories": [
+        "Elixir",
+        "Phoenix",
+        "Protobuf"
+    ],
+    "filePatterns": [
+        "mix.exs",
+        "mix.lock"
+    ]
+}
