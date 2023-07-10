@@ -1,0 +1,60 @@
+name: Release to HEX
+on:
+  push:
+    branches:
+      - main
+
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-20.04
+    env:
+      MIX_ENV: test
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Set up Elixir
+        id: beam
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.14.3" # Define the elixir version
+          otp-version: "25.1" # Define the OTP version
+
+      - name: Restore Cache
+        uses: actions/cache@v2
+        id: cache
+        with:
+          key: v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
+
+          restore-keys: |
+            v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
+          path: |
+            ~/.mix
+            ./test/support/generated
+            ./deps
+            ./_build
+
+      - name: Add NPM Registry
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+
+      - name: Install Semantic Release
+        run:  npm install semantic-release @semantic-release/git @semantic-release/exec @semantic-release/changelog @heathmont/semantic-release-elixir-hex
+
+      - name: Semantic Release
+        run: npx semantic-release --extends @heathmont/semantic-release-elixir-hex
