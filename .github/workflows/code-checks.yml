@@ -1,5 +1,22 @@
 name: Compile and check
-on: push
+on:
+  workflow_call:
+    inputs:
+      cache_paths:
+        type: string
+        required: false
+        default: ""
+      elixir-version: 
+        type: string
+        required: false
+        default: "1.14.3" # Define the elixir version
+      otp-version:
+        type: string
+        required: false
+        default: "25.1" # Define the OTP version
+    secrets:
+      HEX_ORGANIZATION_COINGAMING_KEY:
+        required: true
 
 defaults:
   run:
@@ -29,8 +46,8 @@ jobs:
         id: beam
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.14.3" # Define the elixir version
-          otp-version: "25.1" # Define the OTP version
+          elixir-version: ${{ inputs.elixir-version }}
+          otp-version: ${{ inputs.otp-version }}
 
       - name: Restore Cache
         uses: actions/cache@v2
@@ -41,8 +58,8 @@ jobs:
           restore-keys: |
             v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
           path: |
+            ${{ inputs.cache_paths }}
             ~/.mix
-            ./test/support/generated
             ./deps
             ./_build
 
@@ -70,8 +87,8 @@ jobs:
         id: beam
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.14.3" # Define the elixir version
-          otp-version: "25.1" # Define the OTP version
+          elixir-version: ${{ inputs.elixir-version }}
+          otp-version: ${{ inputs.otp-version }}
 
       - name: Restore Cache
         uses: actions/cache@v2
@@ -82,8 +99,8 @@ jobs:
           restore-keys: |
             v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
           path: |
+            ${{ inputs.cache_paths }}
             ~/.mix
-            ./test/support/generated
             ./deps
             ./_build
 
@@ -122,8 +139,8 @@ jobs:
         id: beam
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.14.3" # Define the elixir version
-          otp-version: "25.1" # Define the OTP version
+          elixir-version: ${{ inputs.elixir-version }}
+          otp-version: ${{ inputs.otp-version }}
 
       - name: Restore Cache
         uses: actions/cache@v2
@@ -134,17 +151,14 @@ jobs:
           restore-keys: |
             v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
           path: |
+            ${{ inputs.cache_paths }}
             ~/.mix
-            ./test/support/generated
             ./deps
             ./_build
 
 
       - name: DB setup
-        run: |
-          echo ${{ env.MIX_ENV }}
-          ls _build
-          mix ecto.setup
+        run: mix ecto.setup
 
       - name: Tests
         run: mix test

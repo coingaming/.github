@@ -1,6 +1,19 @@
 name: Build the project code
 on:
   workflow_call:
+    inputs:
+      cache_paths:
+        type: string
+        required: false
+        default: ""
+      elixir-version: 
+        type: string
+        required: false
+        default: "1.14.3" # Define the elixir version
+      otp-version:
+        type: string
+        required: false
+        default: "25.1" # Define the OTP version
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
@@ -27,8 +40,8 @@ jobs:
         id: beam
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.14.3" # Define the elixir version
-          otp-version: "25.1" # Define the OTP version
+          elixir-version: ${{ inputs.elixir-version }}
+          otp-version: ${{ inputs.otp-version }}
 
       - name: Install protoc
         run: sudo apt-get install protobuf-compiler
@@ -42,8 +55,8 @@ jobs:
           restore-keys: |
             v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
           path: |
+            ${{ inputs.cache_paths }}
             ~/.mix
-            ./test/support/generated
             ./deps
             ./_build
 
