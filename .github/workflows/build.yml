@@ -64,6 +64,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           mix hex.organization auth coingaming --key ${{secrets.HEX_ORGANIZATION_COINGAMING_KEY}}
+          mix archive.install hex ex_env 0.3.2 --force
           mix deps.get
           mix escript.install hex protobuf 0.10.0 --force
           echo "$HOME/.mix/escripts" >> $GITHUB_PATH
