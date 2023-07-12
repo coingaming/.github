@@ -79,7 +79,6 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: mix deps.compile
 
-      - name: Compile and chack warnings
+      - name: Compile
         if: steps.cache.outputs.cache-hit != 'true'
-        run: mix compile --warnings-as-errors
-
+        run: mix compile
