@@ -14,6 +14,10 @@ on:
         type: string
         required: false
         default: "25.1" # Define the OTP version
+      mix-env: 
+        type: string
+        required: false
+        default: test
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
@@ -22,13 +26,15 @@ defaults:
   run:
     shell: bash
 env:
-  MIX_ENV: test
+  MIX_ENV: ${{ inputs.mix-env }}
 
 jobs:
   build:
     name: Build
     uses: ./.github/workflows/build.yml
     secrets: inherit
+    with:
+      mix-env: ${{ inputs.mix-env }}
 
   code_checks:
     name: Run code checks
