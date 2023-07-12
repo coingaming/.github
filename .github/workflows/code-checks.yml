@@ -35,6 +35,7 @@ jobs:
     secrets: inherit
     with:
       mix-env: ${{ inputs.mix-env }}
+      cache_paths: ${{ inputs.cache_paths }}
 
   code_checks:
     name: Run code checks

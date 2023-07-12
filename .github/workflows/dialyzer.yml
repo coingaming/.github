@@ -36,6 +36,7 @@ jobs:
     secrets: inherit
     with:
       mix-env: ${{ inputs.mix-env }}
+      cache_paths: ${{ inputs.cache_paths }}
 
   dialyzer:
     name: Run dialyzer
