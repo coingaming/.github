@@ -1,0 +1,102 @@
+name: Compile and check
+on:
+  workflow_call:
+    inputs:
+      cache_paths:
+        type: string
+        required: false
+        default: ""
+      elixir-version: 
+        type: string
+        required: false
+        default: "1.14.3" # Define the elixir version
+      otp-version:
+        type: string
+        required: false
+        default: "25.1" # Define the OTP version
+      mix-env: 
+        type: string
+        required: false
+        default: test
+    secrets:
+      HEX_ORGANIZATION_COINGAMING_KEY:
+        required: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  MIX_ENV: ${{ inputs.mix-env }}
+
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      mix-env: ${{ inputs.mix-env }}
+      cache_paths: ${{ inputs.cache_paths }}
+
+  tests:
+    name: Run tests
+    needs: build
+    runs-on: ubuntu-20.04
+
+    services:
+      postgres:
+        image: postgres:11-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      localstack:
+        image: localstack/localstack
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Restore Cache
+        uses: actions/cache@v2
+        id: cache
+        with:
+          key: v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
+
+          restore-keys: |
+            v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
+          path: |
+            ${{ inputs.cache_paths }}
+            ~/.mix
+            ./deps
+            ./_build
+
+      - name: Set up Elixir
+        id: beam
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ inputs.elixir-version }}
+          otp-version: ${{ inputs.otp-version }}
+
+      - name: DB setup
+        run: mix ecto.setup
+
+      - name: Tests
+        run: mix test
+
+     # TODO: Fix coverage and make it work
+     # - name: Coverage
+     #   run: mix coveralls.github
+     #   env:
+     #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+
