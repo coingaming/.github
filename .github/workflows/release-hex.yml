@@ -50,13 +50,6 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Set up Elixir
-        id: beam
-        uses: erlef/setup-beam@v1
-        with:
-          elixir-version: ${{ inputs.elixir-version }}
-          otp-version: ${{ inputs.otp-version }}
-
       - name: Restore Cache
         uses: actions/cache@v2
         id: cache
@@ -70,6 +63,14 @@ jobs:
             ~/.mix
             ./deps
             ./_build
+
+      - name: Set up Elixir
+        id: beam
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ inputs.elixir-version }}
+          otp-version: ${{ inputs.otp-version }}
+
 
       - name: Add NPM Registry
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
