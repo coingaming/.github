@@ -21,6 +21,10 @@ on:
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
+      OBAN_FINGERPRINT:
+        required: false
+      OBAN_LICENSE_KEY:
+        required: false
 
 defaults:
   run:
