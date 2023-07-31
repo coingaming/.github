@@ -77,7 +77,7 @@ jobs:
         run: mix hex.organization auth coingaming --key ${{secrets.HEX_ORGANIZATION_COINGAMING_KEY}}
 
       - name: Add oban repo
-        if: steps.cache.outputs.cache-hit != 'true' && ${{secrets.OBAN_FINGERPRINT}}
+        if: steps.cache.outputs.cache-hit != 'true' && secrets.OBAN_FINGERPRINT
         run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key ${{secrets.OBAN_FINGERPRINT} --auth-key ${{secrets.OBAN_LICENSE_KEY}}
 
       - name: Get deps and protobuf escript
