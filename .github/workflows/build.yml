@@ -21,6 +21,8 @@ on:
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
+      SSH_KEYS:
+        required: false
       OBAN_FINGERPRINT:
         required: false
       OBAN_LICENSE_KEY:
@@ -57,6 +59,12 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
+
+      - name: SSH Deploy Keys Setup
+        uses: cardoe/ssh-agent-deploy-key@v1
+        with:
+          ssh-private-key: |
+            ${{ secrets.SSH_KEYS }}
 
       - name: Install protoc
         run: sudo apt-get install protobuf-compiler
@@ -97,6 +105,10 @@ jobs:
       - name: Compile dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: mix deps.compile
+
+      - name: Download UAInspector DB
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: mix run --no-start -e "UAInspector.Downloader.download()"
 
       - name: Compile
         if: steps.cache.outputs.cache-hit != 'true'
