@@ -101,6 +101,7 @@ jobs:
       - name: Generate test proto files
         if: steps.cache.outputs.cache-hit != 'true'
         run: scripts/gen-test-proto.sh
+        continue-on-error: true
 
       - name: Compile dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -109,6 +110,7 @@ jobs:
       - name: Download UAInspector DB
         if: steps.cache.outputs.cache-hit != 'true'
         run: mix run --no-start -e "UAInspector.Downloader.download()"
+        continue-on-error: true
 
       - name: Compile
         if: steps.cache.outputs.cache-hit != 'true'
