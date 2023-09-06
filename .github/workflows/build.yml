@@ -51,6 +51,21 @@ jobs:
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
 
+      - name: Init Cache
+        uses: actions/cache@v2
+        id: cache
+        with:
+          key: v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
+
+          restore-keys: |
+            v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
+          path: |
+            ${{ inputs.cache_paths }}
+            ~/.mix
+            ./deps
+            ./_build
+
+
       - name: Install ExEnv
         run: mix archive.install hex ex_env 0.3.2 --force
 
@@ -68,20 +83,6 @@ jobs:
 
       - name: Install protoc
         run: sudo apt-get install protobuf-compiler
-
-      - name: Restore Cache
-        uses: actions/cache@v2
-        id: cache
-        with:
-          key: v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
-
-          restore-keys: |
-            v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
-          path: |
-            ${{ inputs.cache_paths }}
-            ~/.mix
-            ./deps
-            ./_build
 
       - name: Add coingaming organization
         if: steps.cache.outputs.cache-hit != 'true'
