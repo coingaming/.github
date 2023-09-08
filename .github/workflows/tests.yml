@@ -60,6 +60,13 @@ jobs:
         image: localstack/localstack
 
     steps:
+      - name: Set up Elixir
+        id: beam
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ inputs.elixir-version }}
+          otp-version: ${{ inputs.otp-version }}
+
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
@@ -80,13 +87,6 @@ jobs:
             ~/.hex
             ./deps
             ./_build
-
-      - name: Set up Elixir
-        id: beam
-        uses: erlef/setup-beam@v1
-        with:
-          elixir-version: ${{ inputs.elixir-version }}
-          otp-version: ${{ inputs.otp-version }}
 
       - name: DB setup
         continue-on-error: true
