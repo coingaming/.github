@@ -62,6 +62,7 @@ jobs:
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
+            ~/.hex
             ./deps
             ./_build
 
