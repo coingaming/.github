@@ -51,6 +51,9 @@ jobs:
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
 
+      - name: Install ExEnv
+        run: mix archive.install hex ex_env 0.3.2 --force
+
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
@@ -71,8 +74,6 @@ jobs:
             ~/.hex
             ./deps
             ./_build
-
-
 
       - name: Add NPM Registry
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
