@@ -65,10 +65,10 @@ jobs:
         uses: actions/cache@v2
         id: cache
         with:
-          key: v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
+          key: v2-release-${{ github.sha }}
 
           restore-keys: |
-            v2-release-${{ hashFiles('mix.lock') }}-${{ github.sha }}
+            v2-release-${{ github.sha }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
