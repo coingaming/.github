@@ -60,14 +60,23 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Init Cache
-        uses: actions/cache@v2
-        id: cache
+      - name: Init Deps Cache
+        uses: actions/cache/restore@v3
+        id: deps-cache
+        with:
+          key: v2-release-${{ hashFiles('./mix.lock') }}
+          path: |
+            ${{ inputs.cache_paths }}
+            ~/.mix
+            ~/.hex
+            ./deps
+            ./_build
+
+      - name: Init Code Cache
+        uses: actions/cache/restore@v3
+        id: code-cache
         with:
           key: v2-release-${{ github.sha }}
-
-          restore-keys: |
-            v2-release-${{ github.sha }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
@@ -85,34 +94,58 @@ jobs:
         run: sudo apt-get install protobuf-compiler
 
       - name: Add coingaming organization
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.deps-cache.outputs.cache-hit != 'true'
         run: mix hex.organization auth coingaming --key ${{secrets.HEX_ORGANIZATION_COINGAMING_KEY}}
 
       - name: Add oban repo
-        if: steps.cache.outputs.cache-hit != 'true' && env.OBAN_FINGERPRINT
+        if: steps.deps-cache.outputs.cache-hit != 'true' && env.OBAN_FINGERPRINT
         run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key ${{env.OBAN_FINGERPRINT}} --auth-key ${{env.OBAN_LICENSE_KEY}}
 
       - name: Get deps and protobuf escript
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.deps-cache.outputs.cache-hit != 'true'
         run: |
           mix deps.get
           mix escript.install hex protobuf 0.10.0 --force
           echo "$HOME/.mix/escripts" >> $GITHUB_PATH
 
       - name: Generate test proto files
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.deps-cache.outputs.cache-hit != 'true'
         run: scripts/gen-test-proto.sh
         continue-on-error: true
 
       - name: Compile dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.deps-cache.outputs.cache-hit != 'true'
         run: mix deps.compile
 
       - name: Download UAInspector DB
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.deps-cache.outputs.cache-hit != 'true'
         run: mix run --no-start -e "UAInspector.Downloader.download()"
         continue-on-error: true
 
+      - name: Save Deps Cache
+        uses: actions/cache/save@v3
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        with:
+          key: v2-release-${{ hashFiles('./mix.lock') }}
+          path: |
+            ${{ inputs.cache_paths }}
+            ~/.mix
+            ~/.hex
+            ./deps
+            ./_build
+
       - name: Compile
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.code-cache.outputs.cache-hit != 'true'
         run: mix compile
+
+      - name: Save Code Cache
+        uses: actions/cache/save@v3
+        if: steps.code-cache.outputs.cache-hit != 'true'
+        with:
+          key: v2-release-${{ github.sha }}
+          path: |
+            ${{ inputs.cache_paths }}
+            ~/.mix
+            ~/.hex
+            ./deps
+            ./_build

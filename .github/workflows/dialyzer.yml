@@ -61,8 +61,8 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
 
 
-      - name: Restore Cache
-        uses: actions/cache@v2
+      - name: Restore Code Cache
+        uses: actions/cache/restore@v3
         id: cache
         with:
           key: v2-release-${{ github.sha }}

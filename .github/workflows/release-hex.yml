@@ -9,8 +9,8 @@ on:
       elixir-version: 
         type: string
         required: false
-        default: "1.14.3" # Define the elixir version
-      otp-version:
+        default: "1.14.3" # Define the elixir version 
+      otp-version: 
         type: string
         required: false
         default: "25.1" # Define the OTP version
@@ -60,14 +60,11 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Restore Cache
-        uses: actions/cache@v2
+      - name: Restore Code Cache
+        uses: actions/cache/restore@v3
         id: cache
         with:
           key: v2-release-${{ github.sha }}
-
-          restore-keys: |
-            v2-release-${{ github.sha }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
