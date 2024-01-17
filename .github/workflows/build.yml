@@ -64,7 +64,7 @@ jobs:
         uses: actions/cache/restore@v3
         id: deps-cache
         with:
-          key: v2-release-${{ hashFiles('./mix.lock') }}
+          key: v2-release-${{ hashFiles('./mix.lock') }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
@@ -76,7 +76,7 @@ jobs:
         uses: actions/cache/restore@v3
         id: code-cache
         with:
-          key: v2-release-${{ github.sha }}
+          key: v2-release-${{ github.sha }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
@@ -126,7 +126,7 @@ jobs:
         uses: actions/cache/save@v3
         if: steps.deps-cache.outputs.cache-hit != 'true'
         with:
-          key: v2-release-${{ hashFiles('./mix.lock') }}
+          key: v2-release-${{ hashFiles('./mix.lock') }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
@@ -142,7 +142,7 @@ jobs:
         uses: actions/cache/save@v3
         if: steps.code-cache.outputs.cache-hit != 'true'
         with:
-          key: v2-release-${{ github.sha }}
+          key: v2-release-${{ github.sha }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix

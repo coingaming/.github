@@ -32,8 +32,13 @@ env:
 jobs:
   build:
     name: Build
-    uses: ./.github/workflows/build.yml
+    uses: coingaming/.github/.github/workflows/build.yml@v1.1.0
     secrets: inherit
+    with:
+      mix-env: ${{ inputs.mix-env }}
+      cache_paths: ${{ inputs.cache_paths }}
+      elixir-version: ${{ inputs.elixir-version }}
+      otp-version: ${{ inputs.otp-version }}
 
   release:
     name: Release
@@ -44,33 +49,14 @@ jobs:
       HEX_API_KEY: ${{ secrets.HEX_ORGANIZATION_COINGAMING_KEY }}
 
     steps:
-      - name: Set up Elixir
-        id: beam
-        uses: erlef/setup-beam@v1
+      - name: Prepare repo and env
+        uses: coingaming/.github/actions/prepare@v1.1.0
         with:
+          mix-env: ${{ inputs.mix-env }}
+          cache_paths: ${{ inputs.cache_paths }}
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
-
-      - name: Install ExEnv
-        run: mix archive.install hex ex_env 0.3.2 --force
-
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
-
-      - name: Restore Code Cache
-        uses: actions/cache/restore@v3
-        id: cache
-        with:
-          key: v2-release-${{ github.sha }}
-          path: |
-            ${{ inputs.cache_paths }}
-            ~/.mix
-            ~/.hex
-            ./deps
-            ./_build
 
       - name: Use Node.js
         uses: actions/setup-node@v3

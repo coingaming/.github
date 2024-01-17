@@ -1,0 +1,50 @@
+name: 'Prepere repo'
+description: 'Setup Elixir, restore caches and do other preparation for most of workflows'
+inputs:
+      token:
+        type: string
+        required: true
+      cache_paths:
+        type: string
+        required: false
+        default: ""
+      elixir-version: 
+        type: string
+        required: false
+        default: "1.14.3" # Define the elixir version
+      otp-version:
+        type: string
+        required: false
+        default: "25.1" # Define the OTP version
+      mix-env: 
+        type: string
+        required: false
+        default: test
+runs:
+  using: composite
+  steps:
+    - name: Set up Elixir
+      id: beam
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: ${{ inputs.elixir-version }}
+        otp-version: ${{ inputs.otp-version }}
+
+    - name: Checkout repo
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        token: ${{ inputs.token }}
+
+    - name: Restore Code Cache
+      uses: actions/cache/restore@v3
+      id: cache
+      with:
+        key: v2-release-${{ github.sha }}-${{ inputs.mix-env }}
+        path: |
+          ${{ inputs.cache_paths }}
+          ~/.mix
+          ~/.hex
+          ./deps
+          ./_build
+
