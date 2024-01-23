@@ -1,0 +1,71 @@
+name: Manual release to HEX
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+      cache_paths:
+        type: string
+        required: false
+        default: ""
+      elixir-version: 
+        type: string
+        required: false
+        default: "1.14.3" # Define the elixir version 
+      otp-version: 
+        type: string
+        required: false
+        default: "25.1" # Define the OTP version
+      mix-env: 
+        type: string
+        required: false
+        default: test
+    secrets:
+      HEX_ORGANIZATION_COINGAMING_KEY:
+        required: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  MIX_ENV: ${{ inputs.mix-env }}
+
+jobs:
+  build:
+    name: Build
+    uses: coingaming/.github/.github/workflows/build.yml@v1.1.1
+    secrets: inherit
+    with:
+      ref: ${{ inputs.version }}
+      mix-env: ${{ inputs.mix-env }}
+      cache_paths: ${{ inputs.cache_paths }}
+      elixir-version: ${{ inputs.elixir-version }}
+      otp-version: ${{ inputs.otp-version }}
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-20.04
+    env:
+      MIX_ENV: ${{ inputs.mix-env }}
+      HEX_API_KEY: ${{ secrets.HEX_ORGANIZATION_COINGAMING_KEY }}
+      VSN: ${{ inputs.version }}
+
+    steps:
+      - name: Prepare repo and env
+        uses: coingaming/.github/actions/prepare@v1.1.1
+        with:
+          ref: ${{ inputs.version }}
+          mix-env: ${{ inputs.mix-env }}
+          cache_paths: ${{ inputs.cache_paths }}
+          elixir-version: ${{ inputs.elixir-version }}
+          otp-version: ${{ inputs.otp-version }}
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Prepare VERSION file
+        run: echo ${VSN:1} > VERSION
+
+      - name: Force Hex Publish
+        run: mix hex.publish --organization coingaming --yes

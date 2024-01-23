@@ -2,6 +2,10 @@ name: Build the project code
 on:
   workflow_call:
     inputs:
+      ref:
+        type: string
+        required: false
+        default: ""
       cache_paths:
         type: string
         required: false
@@ -55,8 +59,9 @@ jobs:
         run: mix archive.install hex ex_env 0.3.2 --force
 
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.ref }}
           submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
 
@@ -94,7 +99,7 @@ jobs:
         run: sudo apt-get install protobuf-compiler
 
       - name: Add coingaming organization
-        if: steps.deps-cache.outputs.cache-hit != 'true'
+        if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
         run: mix hex.organization auth coingaming --key ${{secrets.HEX_ORGANIZATION_COINGAMING_KEY}}
 
       - name: Add oban repo
@@ -102,23 +107,23 @@ jobs:
         run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key ${{env.OBAN_FINGERPRINT}} --auth-key ${{env.OBAN_LICENSE_KEY}}
 
       - name: Get deps and protobuf escript
-        if: steps.deps-cache.outputs.cache-hit != 'true'
+        if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
         run: |
           mix deps.get
           mix escript.install hex protobuf 0.10.0 --force
           echo "$HOME/.mix/escripts" >> $GITHUB_PATH
 
       - name: Generate test proto files
-        if: steps.deps-cache.outputs.cache-hit != 'true'
+        if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
         run: scripts/gen-test-proto.sh
         continue-on-error: true
 
       - name: Compile dependencies
-        if: steps.deps-cache.outputs.cache-hit != 'true'
+        if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
         run: mix deps.compile
 
       - name: Download UAInspector DB
-        if: steps.deps-cache.outputs.cache-hit != 'true'
+        if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
         run: mix run --no-start -e "UAInspector.Downloader.download()"
         continue-on-error: true
 

@@ -1,6 +1,10 @@
 name: 'Prepere repo'
 description: 'Setup Elixir, restore caches and do other preparation for most of workflows'
 inputs:
+      ref:
+        type: string
+        required: false
+        default: ""
       token:
         type: string
         required: true
@@ -31,8 +35,9 @@ runs:
         otp-version: ${{ inputs.otp-version }}
 
     - name: Checkout repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
+        ref: ${{ inputs.ref }}
         submodules: recursive
         token: ${{ inputs.token }}
 
