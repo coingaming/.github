@@ -4,6 +4,8 @@ on:
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
+      GH_TOKEN:
+        required: true
 
 defaults:
   run:
