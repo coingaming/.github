@@ -47,6 +47,18 @@ jobs:
             ./deps
             ./_build
 
+      - name: Transform ssh git deps into http git deps
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+
+      - name: Authorize github.com
+        env:
+          GH_PAT: ${{ secrets.GH_TOKEN }}
+          GIT_TERMINAL_PROMPT: 0
+        run: |
+          git config --global --replace-all url."https://${GH_PAT}@github.com/".insteadOf git@github.com:
+          git config --global --add url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
+
       - name: Get deps and protobuf escript
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
