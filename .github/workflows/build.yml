@@ -31,6 +31,8 @@ on:
         required: false
       OBAN_LICENSE_KEY:
         required: false
+      GH_TOKEN:
+        required: false
 
 defaults:
   run:
@@ -105,6 +107,14 @@ jobs:
       - name: Add oban repo
         if: steps.deps-cache.outputs.cache-hit != 'true' && env.OBAN_FINGERPRINT
         run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key ${{env.OBAN_FINGERPRINT}} --auth-key ${{env.OBAN_LICENSE_KEY}}
+
+      - name: Authorize github.com
+        env:
+          GH_PAT: ${{ secrets.GH_TOKEN }}
+          GIT_TERMINAL_PROMPT: 0
+        run: |
+          git config --global --replace-all url."https://${GH_PAT}@github.com/".insteadOf git@github.com:
+          git config --global --add url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
 
       - name: Get deps and protobuf escript
         if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
