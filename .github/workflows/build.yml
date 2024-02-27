@@ -151,7 +151,7 @@ jobs:
 
       - name: Compile
         if: steps.code-cache.outputs.cache-hit != 'true'
-        run: mix compile
+        run: mix compile --ignore-module-conflict
 
       - name: Save Code Cache
         uses: actions/cache/save@v3
