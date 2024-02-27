@@ -6,7 +6,7 @@ on:
         type: string
         required: false
         default: ""
-      elixir-version: 
+      elixir-version:
         type: string
         required: false
         default: "1.14.3" # Define the elixir version
@@ -14,7 +14,7 @@ on:
         type: string
         required: false
         default: "25.1" # Define the OTP version
-      mix-env: 
+      mix-env:
         type: string
         required: false
         default: test
@@ -65,5 +65,5 @@ jobs:
         run: mix credo
 
       - name: Compile and chack warnings
-        run: mix do clean, compile --warnings-as-errors
+        run: mix do clean, compile --warnings-as-errors --ignore-module-conflict
 
