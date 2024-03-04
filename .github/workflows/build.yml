@@ -68,10 +68,10 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Init Deps Cache
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          key: v3-release-${{ hashFiles('./mix.lock') }}-${{ inputs.mix-env }}
+          key: v4-release-${{ hashFiles('./mix.lock') }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
@@ -80,10 +80,10 @@ jobs:
             ./_build
 
       - name: Init Code Cache
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         id: code-cache
         with:
-          key: v3-release-${{ github.sha }}-${{ inputs.mix-env }}
+          key: v4-release-${{ github.sha }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
@@ -138,10 +138,10 @@ jobs:
         continue-on-error: true
 
       - name: Save Deps Cache
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         if: steps.deps-cache.outputs.cache-hit != 'true'
         with:
-          key: v3-release-${{ hashFiles('./mix.lock') }}-${{ inputs.mix-env }}
+          key: v4-release-${{ hashFiles('./mix.lock') }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
@@ -154,10 +154,10 @@ jobs:
         run: mix compile --ignore-module-conflict
 
       - name: Save Code Cache
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         if: steps.code-cache.outputs.cache-hit != 'true'
         with:
-          key: v3-release-${{ github.sha }}-${{ inputs.mix-env }}
+          key: v4-release-${{ github.sha }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
