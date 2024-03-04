@@ -9,15 +9,15 @@ on:
         type: string
         required: false
         default: ""
-      elixir-version: 
+      elixir-version:
         type: string
         required: false
-        default: "1.14.3" # Define the elixir version 
-      otp-version: 
+        default: "1.14.3" # Define the elixir version
+      otp-version:
         type: string
         required: false
         default: "25.1" # Define the OTP version
-      mix-env: 
+      mix-env:
         type: string
         required: false
         default: test
@@ -35,7 +35,7 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.1.1
+    uses: ./.github/workflows/build.yml
     secrets: inherit
     with:
       ref: ${{ inputs.version }}
