@@ -55,7 +55,7 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.1.1
+        uses: ./actions/prepare.yml
         with:
           ref: ${{ inputs.version }}
           mix-env: ${{ inputs.mix-env }}

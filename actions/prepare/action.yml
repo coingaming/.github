@@ -12,7 +12,7 @@ inputs:
         type: string
         required: false
         default: ""
-      elixir-version: 
+      elixir-version:
         type: string
         required: false
         default: "1.14.3" # Define the elixir version
@@ -20,7 +20,7 @@ inputs:
         type: string
         required: false
         default: "25.1" # Define the OTP version
-      mix-env: 
+      mix-env:
         type: string
         required: false
         default: test
@@ -45,7 +45,7 @@ runs:
       uses: actions/cache/restore@v3
       id: cache
       with:
-        key: v2-release-${{ github.sha }}-${{ inputs.mix-env }}
+        key: v4-release-${{ github.sha }}-${{ inputs.mix-env }}
         path: |
           ${{ inputs.cache_paths }}
           ~/.mix
