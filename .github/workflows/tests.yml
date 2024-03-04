@@ -63,7 +63,7 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: ./actions/prepare.yml
+        uses: ./actions/prepare
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
