@@ -50,7 +50,7 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: ./actions/coingaming/.github/actions/prepare@v1.1.0
+        uses: coingaming/.github/actions/prepare@v1.1.0
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
