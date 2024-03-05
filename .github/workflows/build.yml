@@ -61,14 +61,14 @@ jobs:
         run: mix archive.install hex ex_env 0.3.2 --force
 
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
           submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Init Deps Cache
-        uses: actions/cache/restore@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
           key: v2-release-${{ hashFiles('./mix.lock') }}-${{ inputs.mix-env }}
@@ -80,7 +80,7 @@ jobs:
             ./_build
 
       - name: Init Code Cache
-        uses: actions/cache/restore@v2
+        uses: actions/cache/restore@v4
         id: code-cache
         with:
           key: v2-release-${{ github.sha }}-${{ inputs.mix-env }}
@@ -138,7 +138,7 @@ jobs:
         continue-on-error: true
 
       - name: Save Deps Cache
-        uses: actions/cache/save@v2
+        uses: actions/cache/save@v4
         if: steps.deps-cache.outputs.cache-hit != 'true'
         with:
           key: v2-release-${{ hashFiles('./mix.lock') }}-${{ inputs.mix-env }}
@@ -154,7 +154,7 @@ jobs:
         run: mix compile --ignore-module-conflict
 
       - name: Save Code Cache
-        uses: actions/cache/save@v2
+        uses: actions/cache/save@v4
         if: steps.code-cache.outputs.cache-hit != 'true'
         with:
           key: v2-release-${{ github.sha }}-${{ inputs.mix-env }}
