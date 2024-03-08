@@ -25,7 +25,6 @@ on:
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
-        
 defaults:
   run:
     shell: bash
