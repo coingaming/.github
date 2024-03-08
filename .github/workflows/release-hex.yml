@@ -74,5 +74,5 @@ jobs:
 
       - name: Semantic Release
         run:
-          cd ${{ inputs.package-dir }} \
+          cd ${{ inputs.package-dir }} &&
           npx semantic-release --extends @heathmont/semantic-release-elixir-hex
