@@ -18,10 +18,14 @@ on:
         type: string
         required: false
         default: test
+      package-dir:
+        type: string
+        required: false
+        default: "./" # Directory containing the package. Useful for umbrella projects
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
-
+        
 defaults:
   run:
     shell: bash
@@ -70,4 +74,6 @@ jobs:
         run:  npm install semantic-release @semantic-release/git @semantic-release/exec @semantic-release/changelog @heathmont/semantic-release-elixir-hex
 
       - name: Semantic Release
-        run: npx semantic-release --extends @heathmont/semantic-release-elixir-hex
+        run:
+          cd %{{ inputs.package-dir }}
+          npx semantic-release --extends @heathmont/semantic-release-elixir-hex
