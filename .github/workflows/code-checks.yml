@@ -6,7 +6,7 @@ on:
         type: string
         required: false
         default: ""
-      elixir-version: 
+      elixir-version:
         type: string
         required: false
         default: "1.14.3" # Define the elixir version
@@ -14,10 +14,22 @@ on:
         type: string
         required: false
         default: "25.1" # Define the OTP version
-      mix-env: 
+      mix-env:
         type: string
         required: false
         default: test
+      check-format:
+        type: boolean
+        required: false
+        default: true
+      check-credo:
+        type: boolean
+        required: false
+        default: true
+      check-warnings:
+        type: boolean
+        required: false
+        default: true
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
@@ -59,11 +71,13 @@ jobs:
         run: sudo apt-get install protobuf-compiler
 
       - name: Format
+        if: ${{ inputs.check-format }}
         run: mix format --check-formatted
 
       - name: Credo
+        if: ${{ inputs.check-credo }}
         run: mix credo
 
-      - name: Compile and chack warnings
+      - name: Compile and check warnings
+        if: ${{ inputs.check-warnings }}
         run: mix do clean, compile --warnings-as-errors
-
