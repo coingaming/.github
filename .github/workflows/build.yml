@@ -133,7 +133,7 @@ jobs:
           echo "$HOME/.mix/escripts" >> $GITHUB_PATH
 
       - name: Generate test proto files
-        if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
+        if: steps.deps-cache.outputs.cache-hit != 'true' || steps.code-cache.outputs.cache-hit != 'true'
         run: scripts/gen-test-proto.sh
         continue-on-error: true
 
