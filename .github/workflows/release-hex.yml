@@ -18,6 +18,10 @@ on:
         type: string
         required: false
         default: test
+      elixir-code-path:
+        type: string
+        required: false
+        default: "."
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
@@ -32,13 +36,14 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.2.3
+    uses: coingaming/.github/.github/workflows/build.yml@v1.3.1
     secrets: inherit
     with:
       mix-env: ${{ inputs.mix-env }}
       cache_paths: ${{ inputs.cache_paths }}
       elixir-version: ${{ inputs.elixir-version }}
       otp-version: ${{ inputs.otp-version }}
+      elixir-code-path: ${{ inputs.elixir-code-path }}
 
   release:
     name: Release
@@ -50,13 +55,14 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.2.3
+        uses: coingaming/.github/actions/prepare@v1.3.1
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
-          token: ${{ secrets.GH_TOKEN }}
+          elixir-code-path: ${{ inputs.elixir-code-path }}
+          token: ${{ secrets.GH_TOKEN != '' && secrets.GH_TOKEN || github.token }}
 
       - name: Use Node.js
         uses: actions/setup-node@v3
@@ -67,7 +73,11 @@ jobs:
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
 
       - name: Install Semantic Release
-        run:  npm install semantic-release @semantic-release/git @semantic-release/exec @semantic-release/changelog @heathmont/semantic-release-elixir-hex
+        run: |
+          # cd ${{ inputs.elixir-code-path }}
+          npm install semantic-release @semantic-release/git @semantic-release/exec @semantic-release/changelog @heathmont/semantic-release-elixir-hex
 
       - name: Semantic Release
-        run: npx semantic-release --extends @heathmont/semantic-release-elixir-hex
+        run: |
+          cd ${{ inputs.elixir-code-path }}
+          npx semantic-release --extends @heathmont/semantic-release-elixir-hex

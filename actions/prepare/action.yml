@@ -24,6 +24,10 @@ inputs:
         type: string
         required: false
         default: test
+      elixir-code-path:
+        type: string
+        required: false
+        default: "."
 runs:
   using: composite
   steps:
@@ -50,6 +54,6 @@ runs:
           ${{ inputs.cache_paths }}
           ~/.mix
           ~/.hex
-          ./deps
-          ./_build
+          ./${{ inputs.elixir-code-path }}/deps
+          ./${{ inputs.elixir-code-path }}/_build
 

@@ -6,7 +6,7 @@ on:
         type: string
         required: false
         default: ""
-      elixir-version:
+      elixir-version: 
         type: string
         required: false
         default: "1.14.3" # Define the elixir version
@@ -14,10 +14,14 @@ on:
         type: string
         required: false
         default: "25.1" # Define the OTP version
-      mix-env:
+      mix-env: 
         type: string
         required: false
         default: test
+      elixir-code-path:
+        type: string
+        required: false
+        default: "."
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
@@ -32,13 +36,14 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.2.3
+    uses: coingaming/.github/.github/workflows/build.yml@v1.3.1
     secrets: inherit
     with:
       mix-env: ${{ inputs.mix-env }}
       cache_paths: ${{ inputs.cache_paths }}
       elixir-version: ${{ inputs.elixir-version }}
       otp-version: ${{ inputs.otp-version }}
+      elixir-code-path: ${{ inputs.elixir-code-path }}
 
   dialyzer:
     name: Run dialyzer
@@ -47,13 +52,16 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.2.3
+        uses: coingaming/.github/actions/prepare@v1.3.1
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GH_TOKEN != '' && secrets.GH_TOKEN || github.token }}
+          elixir-code-path: ${{ inputs.elixir-code-path }}
 
       - name: Run dialyzer
-        run: mix dialyzer --format github
+        run: |
+          cd ${{ inputs.elixir-code-path }}
+          mix dialyzer --format github

@@ -21,6 +21,10 @@ on:
         type: string
         required: false
         default: test
+      elixir-code-path:
+        type: string
+        required: false
+        default: "."
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
@@ -35,7 +39,7 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.2.3
+    uses: coingaming/.github/.github/workflows/build.yml@v1.3.1
     secrets: inherit
     with:
       ref: ${{ inputs.version }}
@@ -43,6 +47,7 @@ jobs:
       cache_paths: ${{ inputs.cache_paths }}
       elixir-version: ${{ inputs.elixir-version }}
       otp-version: ${{ inputs.otp-version }}
+      elixir-code-path: ${{ inputs.elixir-code-path }}
 
   release:
     name: Release
@@ -55,17 +60,20 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.2.3
+        uses: coingaming/.github/actions/prepare@v1.3.1
         with:
           ref: ${{ inputs.version }}
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GH_TOKEN != '' && secrets.GH_TOKEN || github.token }}
+          elixir-code-path: ${{ inputs.elixir-code-path }}
 
       - name: Prepare VERSION file
         run: echo ${VSN:1} > VERSION
 
       - name: Force Hex Publish
-        run: mix hex.publish --organization coingaming --yes
+        run: |
+          cd ${{ inputs.elixir-code-path }}
+          mix hex.publish --organization coingaming --yes
