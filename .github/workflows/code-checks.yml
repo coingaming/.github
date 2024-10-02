@@ -66,8 +66,16 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: coingaming/.github
+          file-name: code-checks.yml
+          github-token: ${{ secrets.GH_TOKEN != '' && secrets.GH_TOKEN || github.token }}
+
       - name: Prepare repo and env
-        uses: ./actions/prepare/action.yml
+        uses: coingaming/.github/actions/prepare@${{ steps.workflow-version.outputs.sha }}
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
