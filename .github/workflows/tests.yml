@@ -25,7 +25,7 @@ on:
       with-coverage:
         type: boolean
         required: false
-        default: true
+        default: false
       coverage-threshold:
         type: number
         required: false
