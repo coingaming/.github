@@ -47,7 +47,7 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.3.1
+    uses: ./.github/workflows/build.yml
     secrets: inherit
     with:
       mix-env: ${{ inputs.mix-env }}
@@ -64,7 +64,7 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.3.1
+        uses: ./actions/prepare/action.yml
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
@@ -72,7 +72,7 @@ jobs:
           otp-version: ${{ inputs.otp-version }}
           token: ${{ secrets.GH_TOKEN != '' && secrets.GH_TOKEN || github.token }}
           elixir-code-path: ${{ inputs.elixir-code-path }}
-        
+
 
       - name: Install protoc
         run: sudo apt-get install protobuf-compiler

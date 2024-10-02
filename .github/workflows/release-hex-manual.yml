@@ -39,7 +39,7 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.3.1
+    uses: ./.github/workflows/build.yml
     secrets: inherit
     with:
       ref: ${{ inputs.version }}
@@ -60,7 +60,7 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.3.1
+        uses: ./actions/prepare/action.yml
         with:
           ref: ${{ inputs.version }}
           mix-env: ${{ inputs.mix-env }}
