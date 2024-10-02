@@ -75,13 +75,13 @@ jobs:
         uses: actions/cache/restore@v3
         id: deps-cache
         with:
-          key: v2-release-${{ hashFiles(format('./{0}/mix.lock', inputs.elixir-code-path)) }}-${{ inputs.mix-env }}
+          key: v2-release-${{ hashFiles(format('{0}/mix.lock', inputs.elixir-code-path)) }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
             ~/.hex
-            ./${{ inputs.elixir-code-path }}/deps
-            ./${{ inputs.elixir-code-path }}/_build
+            ${{ inputs.elixir-code-path }}/deps
+            ${{ inputs.elixir-code-path }}/_build
 
       - name: Init Code Cache
         uses: actions/cache/restore@v3
@@ -92,8 +92,8 @@ jobs:
             ${{ inputs.cache_paths }}
             ~/.mix
             ~/.hex
-            ./${{ inputs.elixir-code-path }}/deps
-            ./${{ inputs.elixir-code-path }}/_build
+            ${{ inputs.elixir-code-path }}/deps
+            ${{ inputs.elixir-code-path }}/_build
 
       - name: SSH Deploy Keys Setup
         uses: cardoe/ssh-agent-deploy-key@v1
@@ -154,13 +154,13 @@ jobs:
         uses: actions/cache/save@v3
         if: steps.deps-cache.outputs.cache-hit != 'true'
         with:
-          key: v2-release-${{ hashFiles(format('./{0}/mix.lock', inputs.elixir-code-path)) }}-${{ inputs.mix-env }}
+          key: v2-release-${{ hashFiles(format('{0}/mix.lock', inputs.elixir-code-path)) }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
             ~/.hex
-            ./${{ inputs.elixir-code-path }}/deps
-            ./${{ inputs.elixir-code-path }}/_build
+            ${{ inputs.elixir-code-path }}/deps
+            ${{ inputs.elixir-code-path }}/_build
 
       - name: Compile
         if: steps.code-cache.outputs.cache-hit != 'true'
@@ -177,5 +177,5 @@ jobs:
             ${{ inputs.cache_paths }}
             ~/.mix
             ~/.hex
-            ./${{ inputs.elixir-code-path }}/deps
-            ./${{ inputs.elixir-code-path }}/_build
+            ${{ inputs.elixir-code-path }}/deps
+            ${{ inputs.elixir-code-path }}/_build
