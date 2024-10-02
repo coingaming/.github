@@ -22,6 +22,14 @@ on:
         type: string
         required: false
         default: "."
+      with-coverage:
+        type: boolean
+        required: false
+        default: true
+      coverage-threshold:
+        type: number
+        required: false
+        default: 80
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
@@ -84,9 +92,17 @@ jobs:
           mix ecto.setup
 
       - name: Tests
+        if: ${{ ! inputs.with-coverage }}
         run: |
           cd ${{ inputs.elixir-code-path }}
            mix test
+
+      - name: Tests & Coverage
+        uses: josecfreittas/elixir-coverage-feedback-action@v1
+        if: ${{ inputs.with-coverage }}
+        with:
+          github_token: ${{ secrets.GH_TOKEN }}
+          coverage_threshold: ${{ inputs.coverage-threshold }}
 
      # TODO: Fix coverage and make it work
      # - name: Coverage
