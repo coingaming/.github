@@ -1,0 +1,91 @@
+name: Poll Stacks Deployment
+
+on:
+  workflow_call:
+    inputs:
+      ENV:
+        type: string
+        required: true
+      SERVICE_NAME:
+        type: string
+        required: true
+      DOCKER_IMAGE:
+        type: string
+        required: true
+      MONITORING_AUTH_TOKEN:
+        type: string
+        required: true
+      AWS_REGION:
+        type: string
+        required: true
+        default: eu-central-1
+      TIMEOUT:
+        type: number
+        required: false
+        default: 1500
+      INTERVAL:
+        type: number
+        required: false
+        default: 10
+      ELAPSED_TIME:
+        type: number
+        required: false
+        default: 0
+
+jobs:
+  poll-deployment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq curl sed
+
+      - name: Poll deployment status
+        env:
+          ENV: ${{ inputs.ENV }}
+          SERVICE_NAME: ${{ inputs.SERVICE_NAME }}
+          MONITORING_AUTH_TOKEN: ${{ inputs.MONITORING_AUTH_TOKEN }}
+          AWS_REGION: ${{ inputs.AWS_REGION }}
+          IMAGE: ${{ inputs.DOCKER_IMAGE }}
+          TIMEOUT: ${{ inputs.TIMEOUT || inputs.TIMEOUT.default }}
+          INTERVAL: ${{ inputs.INTERVAL || inputs.INTERVAL.default }}
+          ELAPSED_TIME: ${{ inputs.ELAPSED_TIME || inputs.ELAPSED_TIME.default }}
+        run: |
+          timeout=$TIMEOUT # Default timeout is 25 minutes
+          interval=$INTERVAL
+          elapsed_time=$ELAPSED_TIME
+
+          while [ $elapsed_time -lt $timeout ]; do
+              response=$(curl -L "https://monitoring.heathmont.net/tools/state.php?env=$ENV&region=$AWS_REGION&service=$SERVICE_NAME" \
+                  --header "authorization: Basic $MONITORING_AUTH_TOKEN" -s -f | sed 's/<[^>]*>//g' || echo "failed")
+
+              if [[ $response == "failed" || $response == "" ]]; then
+                  echo "Not authenticated. Response: \"$response\""
+                  exit 1 # Failure
+              fi
+              
+              echo $response
+              deploy_state=$(echo $response | jq -r '.rolloutState')
+              current_image=$(echo $response | jq -r '.image')
+
+              if [[ $deploy_state == "COMPLETED" && $current_image == $IMAGE ]]; then
+                  echo "Deployment is complete."
+                  exit 0 # Success
+              elif [[ $image != $IMAGE || $deploy_state == "IN_PROGRESS" ]]; then
+                  echo "\nDeploy  state: $deploy_state. \nCurrent image: $current_image \nWaiting image: $IMAGE to complete deployment..."
+                  sleep $interval
+                  elapsed_time=$((elapsed_time + interval))
+              elif [[ $deploy_state == "FAILED" || $deploy_state == "" || $current_image == "" ]]; then
+                  echo "Deployment is $deploy_state."
+                  exit 1 # Failure
+              else
+                  echo "Unexpected deploy state: $deploy_state \nFull respose: $response"
+                  exit 1 # Failure
+              fi
+          done
+
+          if [ $elapsed_time -ge $timeout ]; then
+              echo "Timeout reached. Deployment did not complete within the specified time."
+              exit 1 # Failure
+          fi
