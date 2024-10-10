@@ -86,11 +86,11 @@ jobs:
           PATH_TO_HELM_CHART: ${{ inputs.PATH_TO_HELM_CHART }}
           PATH_TO_HELM_VALUES: ${{ inputs.PATH_TO_HELM_VALUES }}
         run: |
-        helm upgrade ${K8S_NAMESPACE}-release $PATH_TO_HELM_CHART \
-          -f $PATH_TO_HELM_VALUES \
-          --create-namespace \
-          --set image.name=$DOCKER_IMAGE \
-          --install \
-          --namespace $K8S_NAMESPACE \
-          --timeout 10m0s
-          --wait
+          helm upgrade ${K8S_NAMESPACE}-release $PATH_TO_HELM_CHART \
+            -f $PATH_TO_HELM_VALUES \
+            --create-namespace \
+            --set image.name=$DOCKER_IMAGE \
+            --install \
+            --namespace $K8S_NAMESPACE \
+            --timeout 10m0s
+            --wait
