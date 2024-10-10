@@ -22,9 +22,6 @@ on:
       GH_TOKEN:
         type: string
         required: true
-      INGRESS_HOSTNAME:
-        type: string
-        required: true
       PATH_TO_HELM_CHART:
         type: string
         required: true
@@ -86,11 +83,10 @@ jobs:
         env:
           K8S_NAMESPACE: ${{ inputs.K8S_NAMESPACE }}
           DOCKER_IMAGE: ${{ inputs.DOCKER_IMAGE }}
-          INGRESS_HOSTNAME: ${{ inputs.INGRESS_HOSTNAME }}
           PATH_TO_HELM_CHART: ${{ inputs.PATH_TO_HELM_CHART }}
           PATH_TO_HELM_VALUES: ${{ inputs.PATH_TO_HELM_VALUES }}
         run: |
-        helm upgrade $K8S_NAMESPACE $PATH_TO_HELM_CHART \
+        helm upgrade ${K8S_NAMESPACE}-release $PATH_TO_HELM_CHART \
           -f $PATH_TO_HELM_VALUES \
           --create-namespace \
           --set image.name=$DOCKER_IMAGE \
