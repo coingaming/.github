@@ -1,0 +1,72 @@
+name: Delete k8s deployment
+
+on:
+  workflow_call:
+    inputs:
+      AWS_REGION:
+        type: string
+        required: true
+        default: eu-central-1
+      CLUSTER_NAME:
+        type: string
+        required: true
+      K8S_NAMESPACE:
+        type: string
+        required: true
+      AWS_OIDC_ROLE_TO_ASSUME:
+        type: string
+        required: true
+      GH_TOKEN:
+        type: string
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  helmUninstall:
+    name: Helm Uninstall
+    runs-on: self-hosted
+    steps:
+      - name: Install AWS CLI
+        run: |
+          curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install --update
+          command -v aws || echo "AWS CLI not found"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ inputs.AWS_REGION || inputs.AWS_REGION.default }}
+          role-to-assume: ${{ inputs.AWS_OIDC_ROLE_TO_ASSUME }}
+          role-skip-session-tagging: true
+
+      - name: Add AWS CLI to $PATH
+        run: |
+          echo "/usr/local/aws-cli/v2/current/dist/" >> $GITHUB_PATH
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          kubectl version --client
+
+      - name: Configure Kubectl
+        env:
+          AWS_REGION: ${{ inputs.AWS_REGION || inputs.AWS_REGION.default }}
+          CLUSTER_NAME: ${{ inputs.CLUSTER_NAME }}
+        run: |
+          aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
+
+      - uses: azure/setup-helm@v4
+        env:
+          GITHUB_TOKEN: ${{ inputs.GH_TOKEN }}
+
+      - name: Helm Uninstall
+        # if helm try to uninstall non-existing env the || true will keep the workflow status as success
+        run: helm uninstall ${{ inputs.K8S_NAMESPACE }} --namespace ${{ inputs.K8S_NAMESPACE }} || true
+
+      - name: Delete Kubernetes Namespace
+        run: kubectl delete namespace ${{ inputs.K8S_NAMESPACE }} || true
