@@ -26,7 +26,7 @@ on:
         type: boolean
         required: false
         default: false
-      TIMEOUT:
+      HELM_TIMEOUT:
         type: number
         required: false
         default: 10
@@ -92,8 +92,8 @@ jobs:
           DOCKER_IMAGE: ${{ inputs.DOCKER_IMAGE }}
           PATH_TO_HELM_CHART: ${{ inputs.PATH_TO_HELM_CHART }}
           PATH_TO_HELM_VALUES: ${{ inputs.PATH_TO_HELM_VALUES }}
-          HELM_DEBUG: ${{ inputs.HELM_DEBUG == 'true' && '--debug' || '' }}
-          TIMEOUT: ${{ inputs.TIMEOUT || inputs.TIMEOUT.default }}
+          HELM_DEBUG: ${{ inputs.HELM_DEBUG || inputs.HELM_DEBUG.default }}
+          TIMEOUT: ${{ inputs.HELM_TIMEOUT || inputs.HELM_TIMEOUT.default }}
         run: |
           helm upgrade ${K8S_NAMESPACE}-release $PATH_TO_HELM_CHART \
             -f $PATH_TO_HELM_VALUES \
@@ -101,4 +101,4 @@ jobs:
             --set image.name=$DOCKER_IMAGE \
             --install \
             --namespace $K8S_NAMESPACE \
-            --timeout ${TIMEOUT}m0s --wait $HELM_DEBUG
+            --timeout ${TIMEOUT}m0s --wait ($HELM_DEBUG && echo "--debug" || echo "")
