@@ -91,5 +91,4 @@ jobs:
             --set image.name=$DOCKER_IMAGE \
             --install \
             --namespace $K8S_NAMESPACE \
-            --timeout 10m0s
-            --wait --debug
+            --timeout 10m0s --wait --debug

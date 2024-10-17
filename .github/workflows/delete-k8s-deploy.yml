@@ -13,11 +13,10 @@ on:
       K8S_NAMESPACE:
         type: string
         required: true
+    secrets:
       AWS_OIDC_ROLE_TO_ASSUME:
-        type: string
         required: true
       GH_TOKEN:
-        type: string
         required: true
 
 permissions:
@@ -40,7 +39,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ inputs.AWS_REGION || inputs.AWS_REGION.default }}
-          role-to-assume: ${{ inputs.AWS_OIDC_ROLE_TO_ASSUME }}
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_TO_ASSUME }}
           role-skip-session-tagging: true
 
       - name: Add AWS CLI to $PATH
@@ -62,7 +61,7 @@ jobs:
 
       - uses: azure/setup-helm@v4
         env:
-          GITHUB_TOKEN: ${{ inputs.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Helm Uninstall
         # if helm try to uninstall non-existing env the || true will keep the workflow status as success
