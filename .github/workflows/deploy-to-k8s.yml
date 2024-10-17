@@ -93,4 +93,4 @@ jobs:
             --install \
             --namespace $K8S_NAMESPACE \
             --timeout 10m0s
-            --wait
+            --wait --debug
