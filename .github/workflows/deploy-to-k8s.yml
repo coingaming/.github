@@ -13,6 +13,9 @@ on:
       DOCKER_IMAGE:
         type: string
         required: true
+      HELM_RELEASE_NAME:
+        type: string
+        required: true
       K8S_NAMESPACE:
         type: string
         required: true
@@ -89,13 +92,14 @@ jobs:
       - name: Helm Upgrade
         env:
           K8S_NAMESPACE: ${{ inputs.K8S_NAMESPACE }}
+          HELM_RELEASE_NAME : ${{ inputs.HELM_RELEASE_NAME }}
           DOCKER_IMAGE: ${{ inputs.DOCKER_IMAGE }}
           PATH_TO_HELM_CHART: ${{ inputs.PATH_TO_HELM_CHART }}
           PATH_TO_HELM_VALUES: ${{ inputs.PATH_TO_HELM_VALUES }}
           HELM_DEBUG: ${{ inputs.HELM_DEBUG && '--debug' || '' }}
           TIMEOUT: ${{ inputs.HELM_TIMEOUT || inputs.HELM_TIMEOUT.default }}
         run: |
-          helm upgrade ${K8S_NAMESPACE}-release $PATH_TO_HELM_CHART \
+          helm upgrade $HELM_RELEASE_NAME $PATH_TO_HELM_CHART \
             -f $PATH_TO_HELM_VALUES \
             --namespace $K8S_NAMESPACE \
             --create-namespace \
