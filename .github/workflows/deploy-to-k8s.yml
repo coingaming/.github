@@ -97,8 +97,8 @@ jobs:
         run: |
           helm upgrade ${K8S_NAMESPACE}-release $PATH_TO_HELM_CHART \
             -f $PATH_TO_HELM_VALUES \
+            --namespace $K8S_NAMESPACE \
             --create-namespace \
             --set image.name=$DOCKER_IMAGE \
             --install \
-            --namespace $K8S_NAMESPACE \
             --timeout ${TIMEOUT}m0s --wait $HELM_DEBUG
