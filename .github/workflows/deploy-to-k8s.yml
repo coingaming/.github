@@ -1,0 +1,108 @@
+name: Deploy to k8s
+
+on:
+  workflow_call:
+    inputs:
+      AWS_REGION:
+        type: string
+        required: true
+        default: eu-central-1
+      CLUSTER_NAME:
+        type: string
+        required: true
+      DOCKER_IMAGE:
+        type: string
+        required: true
+      HELM_RELEASE_NAME:
+        type: string
+        required: true
+      K8S_NAMESPACE:
+        type: string
+        required: true
+      PATH_TO_HELM_CHART:
+        type: string
+        required: true
+      PATH_TO_HELM_VALUES:
+        type: string
+        required: true
+      HELM_DEBUG:
+        type: boolean
+        required: false
+        default: false
+      HELM_TIMEOUT:
+        type: number
+        required: false
+        default: 10
+    secrets:
+      AWS_OIDC_ROLE_TO_ASSUME:
+        required: true
+      GH_TOKEN:
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy_k8s:
+    name: Deploy to k8s
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Install AWS CLI
+        run: |
+          curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install --update
+          command -v aws || echo "AWS CLI not found"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ inputs.AWS_REGION || inputs.AWS_REGION.default }}
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_TO_ASSUME }}
+          role-skip-session-tagging: true
+
+      - name: Add AWS CLI to $PATH
+        run: |
+          echo "/usr/local/aws-cli/v2/current/dist/" >> $GITHUB_PATH
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          kubectl version --client
+
+      - name: Configure Kubectl
+        env:
+          AWS_REGION: ${{ inputs.AWS_REGION || inputs.AWS_REGION.default }}
+          CLUSTER_NAME: ${{ inputs.CLUSTER_NAME }}
+        run: |
+          aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
+
+      - uses: azure/setup-helm@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Helm Upgrade
+        env:
+          K8S_NAMESPACE: ${{ inputs.K8S_NAMESPACE }}
+          HELM_RELEASE_NAME: ${{ inputs.HELM_RELEASE_NAME }}
+          DOCKER_IMAGE: ${{ inputs.DOCKER_IMAGE }}
+          PATH_TO_HELM_CHART: ${{ inputs.PATH_TO_HELM_CHART }}
+          PATH_TO_HELM_VALUES: ${{ inputs.PATH_TO_HELM_VALUES }}
+          HELM_DEBUG: ${{ inputs.HELM_DEBUG && '--debug' || '' }}
+          TIMEOUT: ${{ inputs.HELM_TIMEOUT || inputs.HELM_TIMEOUT.default }}
+        run: |
+          helm upgrade $HELM_RELEASE_NAME $PATH_TO_HELM_CHART \
+            -f $PATH_TO_HELM_VALUES \
+            --namespace $K8S_NAMESPACE \
+            --create-namespace \
+            --set image.name=$DOCKER_IMAGE \
+            --install \
+            --timeout ${TIMEOUT}m0s --wait $HELM_DEBUG
