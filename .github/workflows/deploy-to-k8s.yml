@@ -33,6 +33,9 @@ on:
         type: number
         required: false
         default: 10
+      CUSTOM_PARAMETER:
+        type: string
+        required: false
     secrets:
       AWS_OIDC_ROLE_TO_ASSUME:
         required: true
@@ -98,11 +101,12 @@ jobs:
           PATH_TO_HELM_VALUES: ${{ inputs.PATH_TO_HELM_VALUES }}
           HELM_DEBUG: ${{ inputs.HELM_DEBUG && '--debug' || '' }}
           TIMEOUT: ${{ inputs.HELM_TIMEOUT || inputs.HELM_TIMEOUT.default }}
+          CUSTOM_PARAMETER: ${{ inputs.CUSTOM_PARAMETER || '' }}
         run: |
           helm upgrade $HELM_RELEASE_NAME $PATH_TO_HELM_CHART \
             -f $PATH_TO_HELM_VALUES \
             --namespace $K8S_NAMESPACE \
             --create-namespace \
-            --set image.name=$DOCKER_IMAGE \
+            --set image.name=$DOCKER_IMAGE $CUSTOM_PARAMETER \
             --install \
             --timeout ${TIMEOUT}m0s --wait $HELM_DEBUG
