@@ -64,8 +64,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Helm Uninstall
-        # if helm try to uninstall non-existing env the || true will keep the workflow status as success
-        run: helm uninstall ${{ inputs.K8S_NAMESPACE }} --namespace ${{ inputs.K8S_NAMESPACE }} || true
+        run: helm uninstall ${{ inputs.K8S_NAMESPACE }} --namespace ${{ inputs.K8S_NAMESPACE }}
 
       - name: Delete Kubernetes Namespace
-        run: kubectl delete namespace ${{ inputs.K8S_NAMESPACE }} || true
+        run: kubectl delete namespace ${{ inputs.K8S_NAMESPACE }}
