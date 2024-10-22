@@ -49,6 +49,10 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-20.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.elixir-code-path }}
     env:
       OBAN_FINGERPRINT: ${{ secrets.OBAN_FINGERPRINT }}
       OBAN_LICENSE_KEY: ${{ secrets.OBAN_LICENSE_KEY }}
@@ -75,13 +79,16 @@ jobs:
         uses: actions/cache/restore@v3
         id: deps-cache
         with:
-          key: v2-release-${{ hashFiles(format('./{0}/mix.lock', inputs.elixir-code-path)) }}-${{ inputs.mix-env }}
+          key: v2-release-${{ hashFiles(format('./mix.lock', inputs.elixir-code-path)) }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
             ~/.hex
-            ./${{ inputs.elixir-code-path }}/deps
-            ./${{ inputs.elixir-code-path }}/_build
+            ./deps
+            ./_build
+
+            #./${{ inputs.elixir-code-path }}/deps
+            #./${{ inputs.elixir-code-path }}/_build
 
       - name: Init Code Cache
         uses: actions/cache/restore@v3
@@ -92,8 +99,8 @@ jobs:
             ${{ inputs.cache_paths }}
             ~/.mix
             ~/.hex
-            ./${{ inputs.elixir-code-path }}/deps
-            ./${{ inputs.elixir-code-path }}/_build
+            ./deps
+            ./_build
 
       - name: SSH Deploy Keys Setup
         uses: cardoe/ssh-agent-deploy-key@v1
@@ -107,13 +114,11 @@ jobs:
       - name: Add coingaming organization
         if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
         run: |
-          cd ${{ inputs.elixir-code-path }}
           mix hex.organization auth coingaming --key ${{secrets.HEX_ORGANIZATION_COINGAMING_KEY}}
 
       - name: Add oban repo
         if: steps.deps-cache.outputs.cache-hit != 'true' && env.OBAN_FINGERPRINT
         run:  |
-          cd ${{ inputs.elixir-code-path }}
           mix hex.repo add oban https://getoban.pro/repo --fetch-public-key ${{env.OBAN_FINGERPRINT}} --auth-key ${{env.OBAN_LICENSE_KEY}}
 
       - name: Authorize github.com
@@ -127,7 +132,6 @@ jobs:
       - name: Get deps and protobuf escript
         if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
         run: |
-          cd ${{ inputs.elixir-code-path }}
           mix deps.get
           mix escript.install hex protobuf 0.10.0 --force
           echo "$HOME/.mix/escripts" >> $GITHUB_PATH
@@ -140,13 +144,11 @@ jobs:
       - name: Compile dependencies
         if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
         run: |
-          cd ${{ inputs.elixir-code-path }}
           mix deps.compile
 
       - name: Download UAInspector DB
         if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
         run: |
-          cd ${{ inputs.elixir-code-path }}
           mix run --no-start -e "UAInspector.Downloader.download()"
         continue-on-error: true
 
@@ -154,18 +156,17 @@ jobs:
         uses: actions/cache/save@v3
         if: steps.deps-cache.outputs.cache-hit != 'true'
         with:
-          key: v2-release-${{ hashFiles(format('./{0}/mix.lock', inputs.elixir-code-path)) }}-${{ inputs.mix-env }}
+          key: v2-release-${{ hashFiles(format('./mix.lock', inputs.elixir-code-path)) }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
             ~/.mix
             ~/.hex
-            ./${{ inputs.elixir-code-path }}/deps
-            ./${{ inputs.elixir-code-path }}/_build
+            ./deps
+            ./_build
 
       - name: Compile
         if: steps.code-cache.outputs.cache-hit != 'true'
         run: |
-          cd ${{ inputs.elixir-code-path }}
           mix compile
 
       - name: Save Code Cache
@@ -177,5 +178,5 @@ jobs:
             ${{ inputs.cache_paths }}
             ~/.mix
             ~/.hex
-            ./${{ inputs.elixir-code-path }}/deps
-            ./${{ inputs.elixir-code-path }}/_build
+            ./deps
+            ./_build

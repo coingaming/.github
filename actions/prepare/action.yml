@@ -54,6 +54,6 @@ runs:
           ${{ inputs.cache_paths }}
           ~/.mix
           ~/.hex
-          ./${{ inputs.elixir-code-path }}/deps
-          ./${{ inputs.elixir-code-path }}/_build
+          ./deps
+          ./_build
 

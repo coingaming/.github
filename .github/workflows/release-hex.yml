@@ -29,6 +29,7 @@ on:
 defaults:
   run:
     shell: bash
+    working-directory: ${{ inputs.elixir-code-path }}
 
 env:
   MIX_ENV: ${{ inputs.mix-env }}
@@ -36,7 +37,7 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.3.1
+    uses: coingaming/.github/.github/workflows/build.yml@main
     secrets: inherit
     with:
       mix-env: ${{ inputs.mix-env }}
@@ -49,13 +50,18 @@ jobs:
     name: Release
     needs: build
     runs-on: ubuntu-20.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.elixir-code-path }}
+
     env:
       MIX_ENV: ${{ inputs.mix-env }}
       HEX_API_KEY: ${{ secrets.HEX_ORGANIZATION_COINGAMING_KEY }}
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.3.1
+        uses: coingaming/.github/actions/prepare@main
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
@@ -73,11 +79,7 @@ jobs:
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
 
       - name: Install Semantic Release
-        run: |
-          # cd ${{ inputs.elixir-code-path }}
-          npm install semantic-release @semantic-release/git @semantic-release/exec @semantic-release/changelog @heathmont/semantic-release-elixir-hex
+        run: npm install semantic-release @semantic-release/git @semantic-release/exec @semantic-release/changelog @heathmont/semantic-release-elixir-hex
 
       - name: Semantic Release
-        run: |
-          cd ${{ inputs.elixir-code-path }}
-          npx semantic-release --extends @heathmont/semantic-release-elixir-hex
+        run: npx semantic-release --extends @heathmont/semantic-release-elixir-hex

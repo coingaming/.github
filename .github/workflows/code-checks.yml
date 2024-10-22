@@ -41,13 +41,14 @@ on:
 defaults:
   run:
     shell: bash
+
 env:
   MIX_ENV: ${{ inputs.mix-env }}
 
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.3.1
+    uses: coingaming/.github/.github/workflows/build.yml@main
     secrets: inherit
     with:
       mix-env: ${{ inputs.mix-env }}
@@ -61,10 +62,14 @@ jobs:
     name: Run code checks
     needs: build
     runs-on: ubuntu-20.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.elixir-code-path }}
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.3.1
+        uses: coingaming/.github/actions/prepare@main
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
@@ -79,18 +84,12 @@ jobs:
 
       - name: Format
         if: ${{ inputs.check-format }}
-        run: |
-          cd ${{ inputs.elixir-code-path }}
-          mix format --check-formatted
+        run: mix format --check-formatted
 
       - name: Credo
         if: ${{ inputs.check-credo }}
-        run: |
-          cd ${{ inputs.elixir-code-path }}
-          mix credo
+        run: mix credo
 
       - name: Compile and check warnings
         if: ${{ inputs.check-warnings }}
-        run: |
-          cd ${{ inputs.elixir-code-path }}
-          mix do clean, compile --warnings-as-errors
+        run: mix do clean, compile --warnings-as-errors
