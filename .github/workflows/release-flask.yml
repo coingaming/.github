@@ -33,10 +33,17 @@ on:
       app-name:
         type: string
         required: true
+      app-vsn:
+        type: string
+        required: true
       service-name:
         type: string
         required: false
         default: ${{ inputs.app-name }}
+      docker-org:
+        type: string
+        required: false
+        default: heathmont
 
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
@@ -73,6 +80,8 @@ jobs:
     env:
       MIX_ENV: ${{ inputs.mix-env }}
       HEX_API_KEY: ${{ secrets.HEX_ORGANIZATION_COINGAMING_KEY }}
+      APP_NAME: ${{ inputs.app-name }}
+      APP_VSN: ${{ inputs.app-vsn }}
 
     steps:
       - name: Prepare repo and env
@@ -118,7 +127,7 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Prepare variables for push
-        run: echo "IMAGE=$DOCKER_ORG/$APP_NAME:v${APP_VSN}-${GITHUB_SHA::9}" >> $GITHUB_ENV
+        run: echo "IMAGE=${{ inputs.docker-org }}/$APP_NAME:v${APP_VSN}-${GITHUB_SHA::9}" >> $GITHUB_ENV
 
       - name: Build and Push Docker Image
         run: |
@@ -129,13 +138,13 @@ jobs:
             --file ci.Dockerfile .
           docker push ${{ env.IMAGE }}
 
-      - name: Deploy to stacks
-        run: |
-          git clone git@github.com:coingaming/${{ inputs.stacks-repo }} 
-          cd ${{ inputs.stacks-repo }}
-          git checkout ${{ inputs.stacks-branch-name }}
+          #  - name: Deploy to stacks
+          #    run: |
+          #      git clone git@github.com:coingaming/${{ inputs.stacks-repo }} 
+          #      cd ${{ inputs.stacks-repo }}
+          #      git checkout ${{ inputs.stacks-branch-name }}
 
-          scripts/update-image ${{ inputs.stacks-name }} ${{inputs.service-name }} ${{ env.IMAGE }}
+          #      scripts/update-image ${{ inputs.stacks-name }} ${{inputs.service-name }} ${{ env.IMAGE }}
 
-          git commit -am "upgraded ${{inputs.service-name }} service with  ${{ env.IMMAGE }}"
-          git push origin refs/heads/${{ inputs.stacks-branch-name }}:refs/heads/${{ inputs.stacks-branch-name }}
+          #      git commit -am "upgraded ${{inputs.service-name }} service with  ${{ env.IMMAGE }}"
+          #      git push origin refs/heads/${{ inputs.stacks-branch-name }}:refs/heads/${{ inputs.stacks-branch-name }}
