@@ -87,9 +87,6 @@ jobs:
             ./deps
             ./_build
 
-            #./${{ inputs.elixir-code-path }}/deps
-            #./${{ inputs.elixir-code-path }}/_build
-
       - name: Init Code Cache
         uses: actions/cache/restore@v3
         id: code-cache

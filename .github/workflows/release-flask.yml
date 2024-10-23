@@ -25,8 +25,12 @@ on:
       stacks-repo:
         type: string
         required: false
-        default: "git@github.com:coingaming/stacks.git"
+        default: "coingaming/stacks"
       stacks-name:
+        type: string
+        required: false
+        default: ${{ inputs.app-name }}
+      stacks-branch-name:
         type: string
         required: false
         default: ${{ inputs.app-name }}
@@ -107,8 +111,8 @@ jobs:
           GH_PAT: ${{ secrets.GH_TOKEN }}
           GIT_TERMINAL_PROMPT: 0
         run: |
-          git config --global --replace-all url."https://${GH_PAT}@github.com/".insteadOf git@github.com:
-          git config --global --add url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
+          git config --global user.email "actions@github.com"
+          git config --global user.name ${{ github.actor }}
 
       - name: Get & build for asset
         run: |
@@ -138,13 +142,20 @@ jobs:
             --file ci.Dockerfile .
           docker push ${{ env.IMAGE }}
 
-          #  - name: Deploy to stacks
-          #    run: |
-          #      git clone git@github.com:coingaming/${{ inputs.stacks-repo }} 
-          #      cd ${{ inputs.stacks-repo }}
-          #      git checkout ${{ inputs.stacks-branch-name }}
+      - name: Clone Stacks Repo
+        working-directory: .
+        run: |
+          git clone https://${{secrets.GH_TOKEN }}@github.com/${{ inputs.stacks-repo }}.git stacks
+          cd stacks
+          git checkout ${{ inputs.stacks-branch-name }}
 
-          #      scripts/update-image ${{ inputs.stacks-name }} ${{inputs.service-name }} ${{ env.IMAGE }}
+      - name: Update Docker Image
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.services.${{ inputs.service-name }}.image="${{ env.IMAGE }}"' -i stacks/docker-compose.${{ inputs.stacks-name }}.yml
 
-          #      git commit -am "upgraded ${{inputs.service-name }} service with  ${{ env.IMMAGE }}"
-          #      git push origin refs/heads/${{ inputs.stacks-branch-name }}:refs/heads/${{ inputs.stacks-branch-name }}
+      - name: Deploy to stacks
+        working-directory: stacks
+        run: |
+          git commit -am "upgraded ${{inputs.service-name }} service with  ${{ env.IMAGE }}"
+          git push origin refs/heads/${{ inputs.stacks-branch-name }}:refs/heads/${{ inputs.stacks-branch-name }}
