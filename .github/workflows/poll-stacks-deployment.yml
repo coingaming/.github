@@ -56,7 +56,7 @@ jobs:
           interval=$INTERVAL
           elapsed_time=$ELAPSED_TIME
 
-          while [ "$elapsed_time" -lt "$timeout" ]; do
+          while [[ "$elapsed_time" -lt "$timeout" ]]; do
               response=$(curl -L "https://monitoring.heathmont.net/tools/state.php?env=$ENV&region=$AWS_REGION&service=$SERVICE_NAME" \
                   --header "authorization: Basic $MONITORING_AUTH_TOKEN" -s -f | sed 's/<[^>]*>//g' || echo "failed")
 
@@ -85,7 +85,7 @@ jobs:
               fi
           done
 
-          if [ "$elapsed_time" -ge "$timeout" ]; then
+          if [[ "$elapsed_time" -ge "$timeout" ]]; then
               echo "Timeout reached. Deployment did not complete within the specified time."
               exit 1 # Failure
           fi
