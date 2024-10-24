@@ -12,9 +12,6 @@ on:
       DOCKER_IMAGE:
         type: string
         required: true
-      MONITORING_AUTH_TOKEN:
-        type: string
-        required: true
       AWS_REGION:
         type: string
         required: true
@@ -31,6 +28,9 @@ on:
         type: number
         required: false
         default: 0
+    secrets:
+      MONITORING_AUTH_TOKEN:
+        required: true
 
 jobs:
   poll-deployment:
@@ -45,7 +45,7 @@ jobs:
         env:
           ENV: ${{ inputs.ENV }}
           SERVICE_NAME: ${{ inputs.SERVICE_NAME }}
-          MONITORING_AUTH_TOKEN: ${{ inputs.MONITORING_AUTH_TOKEN }}
+          MONITORING_AUTH_TOKEN: ${{ secrets.MONITORING_AUTH_TOKEN }}
           AWS_REGION: ${{ inputs.AWS_REGION }}
           IMAGE: ${{ inputs.DOCKER_IMAGE }}
           TIMEOUT: ${{ inputs.TIMEOUT || inputs.TIMEOUT.default }}
