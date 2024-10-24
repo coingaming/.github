@@ -56,27 +56,27 @@ jobs:
           interval=$INTERVAL
           elapsed_time=$ELAPSED_TIME
 
-          while [ $elapsed_time -lt $timeout ]; do
+          while [ "$elapsed_time" -lt "$timeout" ]; do
               response=$(curl -L "https://monitoring.heathmont.net/tools/state.php?env=$ENV&region=$AWS_REGION&service=$SERVICE_NAME" \
                   --header "authorization: Basic $MONITORING_AUTH_TOKEN" -s -f | sed 's/<[^>]*>//g' || echo "failed")
 
-              if [[ $response == "failed" || $response == "" ]]; then
+              if [[ "$response" == "failed" || "$response" == "" ]]; then
                   echo "Not authenticated. Response: \"$response\""
                   exit 1 # Failure
               fi
               
-              echo $response
+              echo "$response"
               deploy_state=$(echo $response | jq -r '.rolloutState')
               current_image=$(echo $response | jq -r '.image')
 
-              if [[ $deploy_state == "COMPLETED" && $current_image == $IMAGE ]]; then
+              if [[ "$deploy_state" == "COMPLETED" && "$current_image" == "$IMAGE" ]]; then
                   echo "Deployment is complete."
                   exit 0 # Success
-              elif [[ $image != $IMAGE || $deploy_state == "IN_PROGRESS" ]]; then
+              elif [[ "$image" != "$IMAGE" || "$deploy_state" == "IN_PROGRESS" ]]; then
                   echo "\nDeploy  state: $deploy_state. \nCurrent image: $current_image \nWaiting image: $IMAGE to complete deployment..."
                   sleep $interval
                   elapsed_time=$((elapsed_time + interval))
-              elif [[ $deploy_state == "FAILED" || $deploy_state == "" || $current_image == "" ]]; then
+              elif [[ "$deploy_state" == "FAILED" || "$deploy_state" == "" || "$current_image" == "" ]]; then
                   echo "Deployment is $deploy_state."
                   exit 1 # Failure
               else
@@ -85,7 +85,7 @@ jobs:
               fi
           done
 
-          if [ $elapsed_time -ge $timeout ]; then
+          if [ "$elapsed_time" -ge "$timeout" ]; then
               echo "Timeout reached. Deployment did not complete within the specified time."
               exit 1 # Failure
           fi
