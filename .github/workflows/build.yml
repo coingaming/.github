@@ -10,14 +10,6 @@ on:
         type: string
         required: false
         default: ""
-      elixir-version:
-        type: string
-        required: false
-        default: "1.14.3" # Define the elixir version
-      otp-version:
-        type: string
-        required: false
-        default: "25.1" # Define the OTP version
       mix-env:
         type: string
         required: false
@@ -54,16 +46,6 @@ jobs:
       OBAN_LICENSE_KEY: ${{ secrets.OBAN_LICENSE_KEY }}
 
     steps:
-      - name: Set up Elixir
-        id: beam
-        uses: erlef/setup-beam@v1
-        with:
-          elixir-version: ${{ inputs.elixir-version }}
-          otp-version: ${{ inputs.otp-version }}
-
-      - name: Install ExEnv
-        run: mix archive.install hex ex_env 0.3.2 --force
-
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
@@ -71,38 +53,27 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GH_TOKEN != '' && secrets.GH_TOKEN || github.token }}
 
-      - name: Init Deps Cache
+      # When following job fails, it means you've changed .tool-versions
+      # and you must trigger machine.yml (build machine) workflow to build correct machine-cache
+      - name: Restore elixir and erlang
         uses: actions/cache/restore@v3
-        id: deps-cache
+        id: machine-cache
         with:
-          key: v2-release-${{ hashFiles(format('{0}/mix.lock', inputs.elixir-code-path)) }}-${{ inputs.mix-env }}
+          key: v2-release-${{ runner.os }}-amd64-${{ hashFiles('./.tool-versions') }}
           path: |
-            ${{ inputs.cache_paths }}
             ~/.mix
             ~/.hex
-            ${{ inputs.elixir-code-path }}/deps
-            ${{ inputs.elixir-code-path }}/_build
+            ~/.asdf
 
-      - name: Init Code Cache
-        uses: actions/cache/restore@v3
-        id: code-cache
-        with:
-          key: v2-release-${{ github.sha }}-${{ inputs.mix-env }}
-          path: |
-            ${{ inputs.cache_paths }}
-            ~/.mix
-            ~/.hex
-            ${{ inputs.elixir-code-path }}/deps
-            ${{ inputs.elixir-code-path }}/_build
+      - name: Install Erlang, Elixir, etc
+        uses: asdf-vm/actions/install@v2
 
-      - name: SSH Deploy Keys Setup
-        uses: cardoe/ssh-agent-deploy-key@v1
-        with:
-          ssh-private-key: |
-            ${{ secrets.SSH_KEYS }}
-
-      - name: Install protoc
-        run: sudo apt-get install protobuf-compiler
+      - name: Install mix & hex and ex_env
+        if: steps.machine-cache.outputs.cache-hit != 'true'
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+          mix archive.install --force hex ex_env 0.3.2 --force
 
       - name: Add coingaming organization
         if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'
@@ -115,6 +86,46 @@ jobs:
         run:  |
           cd ${{ inputs.elixir-code-path }}
           mix hex.repo add oban https://getoban.pro/repo --fetch-public-key ${{env.OBAN_FINGERPRINT}} --auth-key ${{env.OBAN_LICENSE_KEY}}
+
+      - name: Save elixir and erlang
+        if: steps.machine-cache.outputs.cache-hit != 'true'
+        uses: buildjet/cache/save@v3
+        id: machine-cache-save
+        with:
+          key: v2-release-${{ runner.os }}-amd64-${{ hashFiles('./.tool-versions') }}
+          path: |
+            ~/.mix
+            ~/.hex
+            ~/.asdf
+
+      - name: Restore Deps Cache
+        uses: actions/cache/restore@v3
+        id: deps-cache
+        with:
+          key: v2-release-${{ hashFiles(format('{0}/mix.lock', inputs.elixir-code-path)) }}-${{ inputs.mix-env }}
+          path: |
+            ${{ inputs.cache_paths }}
+            ${{ inputs.elixir-code-path }}/deps
+            ${{ inputs.elixir-code-path }}/_build
+
+      - name: SSH Deploy Keys Setup
+        uses: cardoe/ssh-agent-deploy-key@v1
+        with:
+          ssh-private-key: |
+            ${{ secrets.SSH_KEYS }}
+
+      - name: Init Code Cache
+        uses: actions/cache/restore@v3
+        id: code-cache
+        with:
+          key: v2-release-${{ github.sha }}-${{ inputs.mix-env }}
+          path: |
+            ${{ inputs.cache_paths }}
+            ${{ inputs.elixir-code-path }}/deps
+            ${{ inputs.elixir-code-path }}/_build
+
+      - name: Install protoc
+        run: sudo apt-get install protobuf-compiler
 
       - name: Authorize github.com
         env:
@@ -157,8 +168,6 @@ jobs:
           key: v2-release-${{ hashFiles(format('{0}/mix.lock', inputs.elixir-code-path)) }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
-            ~/.mix
-            ~/.hex
             ${{ inputs.elixir-code-path }}/deps
             ${{ inputs.elixir-code-path }}/_build
 
@@ -175,7 +184,5 @@ jobs:
           key: v2-release-${{ github.sha }}-${{ inputs.mix-env }}
           path: |
             ${{ inputs.cache_paths }}
-            ~/.mix
-            ~/.hex
             ${{ inputs.elixir-code-path }}/deps
             ${{ inputs.elixir-code-path }}/_build

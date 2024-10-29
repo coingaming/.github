@@ -6,14 +6,6 @@ on:
         type: string
         required: false
         default: ""
-      elixir-version:
-        type: string
-        required: false
-        default: "1.14.3" # Define the elixir version
-      otp-version:
-        type: string
-        required: false
-        default: "25.1" # Define the OTP version
       mix-env:
         type: string
         required: false
@@ -41,8 +33,6 @@ jobs:
     with:
       mix-env: ${{ inputs.mix-env }}
       cache_paths: ${{ inputs.cache_paths }}
-      elixir-version: ${{ inputs.elixir-version }}
-      otp-version: ${{ inputs.otp-version }}
       elixir-code-path: ${{ inputs.elixir-code-path }}
 
   dialyzer:
@@ -56,8 +46,6 @@ jobs:
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
-          elixir-version: ${{ inputs.elixir-version }}
-          otp-version: ${{ inputs.otp-version }}
           token: ${{ secrets.GH_TOKEN != '' && secrets.GH_TOKEN || github.token }}
           elixir-code-path: ${{ inputs.elixir-code-path }}
 
