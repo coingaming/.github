@@ -48,7 +48,7 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.4.1
+    uses: coingaming/.github/.github/workflows/build.yml@v1.4.2
     secrets: inherit
     with:
       mix-env: ${{ inputs.mix-env }}
@@ -61,7 +61,7 @@ jobs:
   code_checks:
     name: Run code checks
     needs: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.4.1
+        uses: coingaming/.github/actions/prepare@v1.4.2
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
