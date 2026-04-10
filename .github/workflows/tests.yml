@@ -36,7 +36,7 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.4.2
+    uses: coingaming/.github/.github/workflows/build.yml@v1.4.4
     secrets: inherit
     with:
       mix-env: ${{ inputs.mix-env }}
@@ -64,11 +64,11 @@ jobs:
         ports:
           - 5432:5432
       localstack:
-        image: localstack/localstack
+        image: localstack/localstack:4.14.0
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.4.2
+        uses: coingaming/.github/actions/prepare@v1.4.4
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
