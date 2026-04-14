@@ -86,6 +86,7 @@ jobs:
       HEX_API_KEY: ${{ secrets.HEX_ORGANIZATION_COINGAMING_KEY }}
       APP_NAME: ${{ inputs.app-name }}
       APP_VSN: ${{ inputs.app-vsn }}
+      IMAGE: ""
 
     steps:
       - name: Prepare repo and env
