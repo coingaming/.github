@@ -8,7 +8,7 @@ defaults:
 jobs:
   build:
     name: Build
-    uses: ./.github/workflows/build.yml
+    uses: coingaming/.github/.github/workflows/build.yml@v1.4.4
     secrets: inherit
 
   code_checks:
