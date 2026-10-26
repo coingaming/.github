@@ -2,11 +2,16 @@ name: Compile and check
 on:
   workflow_call:
     inputs:
+      related-repositories:
+        description: Comma-separated or newline-separated repository names in the caller organization requiring read access.
+        type: string
+        required: false
+        default: ""
       cache_paths:
         type: string
         required: false
         default: ""
-      elixir-version: 
+      elixir-version:
         type: string
         required: false
         default: "1.14.3" # Define the elixir version
@@ -14,7 +19,7 @@ on:
         type: string
         required: false
         default: "25.1" # Define the OTP version
-      mix-env: 
+      mix-env:
         type: string
         required: false
         default: test
@@ -23,6 +28,10 @@ on:
         required: false
         default: "."
     secrets:
+      RO_APP_ID:
+        required: false
+      RO_APP_KEY:
+        required: false
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
 
@@ -39,9 +48,10 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.4.5
+    uses: coingaming/.github/.github/workflows/build.yml@v1.4.6
     secrets: inherit
     with:
+      related-repositories: ${{ inputs.related-repositories }}
       mix-env: ${{ inputs.mix-env }}
       cache_paths: ${{ inputs.cache_paths }}
       elixir-version: ${{ inputs.elixir-version }}
@@ -60,13 +70,15 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.4.5
+        uses: coingaming/.github/actions/prepare@v1.4.6
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
-          token: ${{ github.token }}
+          related-repositories: ${{ inputs.related-repositories }}
+          ro-app-id: ${{ secrets.RO_APP_ID }}
+          ro-app-key: ${{ secrets.RO_APP_KEY }}
           elixir-code-path: ${{ inputs.elixir-code-path }}
 
       - name: Run dialyzer

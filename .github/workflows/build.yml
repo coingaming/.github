@@ -2,6 +2,11 @@ name: Build the project code
 on:
   workflow_call:
     inputs:
+      related-repositories:
+        description: Comma-separated or newline-separated repository names in the caller organization requiring read access.
+        type: string
+        required: false
+        default: ""
       ref:
         type: string
         required: false
@@ -27,6 +32,10 @@ on:
         required: false
         default: "."
     secrets:
+      RO_APP_ID:
+        required: false
+      RO_APP_KEY:
+        required: false
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
       SSH_KEYS:
@@ -59,22 +68,22 @@ jobs:
       OBAN_LICENSE_KEY: ${{ secrets.OBAN_LICENSE_KEY }}
 
     steps:
-      - name: Set up Elixir
-        id: beam
-        uses: erlef/setup-beam@v1
+      - name: Prepare repo and env
+        uses: coingaming/.github/actions/prepare@v1.4.6
         with:
+          ref: ${{ inputs.ref }}
+          mix-env: ${{ inputs.mix-env }}
+          cache_paths: ${{ inputs.cache_paths }}
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
+          elixir-code-path: ${{ inputs.elixir-code-path }}
+          related-repositories: ${{ inputs.related-repositories }}
+          ro-app-id: ${{ secrets.RO_APP_ID }}
+          ro-app-key: ${{ secrets.RO_APP_KEY }}
+          restore-code-cache: "false"
 
       - name: Install ExEnv
         run: mix archive.install hex ex_env 0.3.2 --force
-
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref }}
-          submodules: recursive
-          token: ${{ github.token }}
 
       - name: Init Deps Cache
         uses: actions/cache/restore@v3
@@ -118,14 +127,6 @@ jobs:
         if: steps.deps-cache.outputs.cache-hit != 'true' && env.OBAN_FINGERPRINT
         run:  |
           mix hex.repo add oban https://getoban.pro/repo --fetch-public-key ${{env.OBAN_FINGERPRINT}} --auth-key ${{env.OBAN_LICENSE_KEY}}
-
-      - name: Authorize github.com
-        env:
-          GH_PAT: ${{ github.token }}
-          GIT_TERMINAL_PROMPT: 0
-        run: |
-          git config --global --replace-all url."https://${GH_PAT}@github.com/".insteadOf git@github.com:
-          git config --global --add url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
 
       - name: Get deps and protobuf escript
         if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'

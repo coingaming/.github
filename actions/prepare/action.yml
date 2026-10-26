@@ -1,6 +1,22 @@
 name: 'Prepere repo'
 description: 'Setup Elixir, restore caches and do other preparation for most of workflows'
 inputs:
+      related-repositories:
+        description: Comma-separated or newline-separated repository names in the caller organization requiring read access.
+        required: false
+        default: ""
+      ro-app-id:
+        description: GitHub App ID used when related-repositories is provided.
+        required: false
+        default: ""
+      ro-app-key:
+        description: GitHub App private key used when related-repositories is provided.
+        required: false
+        default: ""
+      restore-code-cache:
+        description: Restore the code cache; disable when the caller manages its own cache restore steps.
+        required: false
+        default: "true"
       ref:
         type: string
         required: false
@@ -39,14 +55,38 @@ runs:
         elixir-version: ${{ inputs.elixir-version }}
         otp-version: ${{ inputs.otp-version }}
 
+    - name: Generate related repositories token
+      if: inputs.related-repositories != ''
+      id: related-repositories-token
+      uses: actions/create-github-app-token@v3
+      with:
+        client-id: ${{ inputs.ro-app-id }}
+        private-key: ${{ inputs.ro-app-key }}
+        owner: ${{ github.repository_owner }}
+        repositories: |
+          ${{ github.event.repository.name }}
+          ${{ inputs.related-repositories }}
+        permission-contents: read
+
     - name: Checkout repo
       uses: actions/checkout@v4
       with:
         ref: ${{ inputs.ref }}
         submodules: recursive
-        token: ${{ inputs.token }}
+        token: ${{ steps.related-repositories-token.outputs.token || inputs.token }}
+        persist-credentials: false
+
+    - name: Authorize GitHub dependencies
+      shell: bash
+      env:
+        GH_READ_TOKEN: ${{ steps.related-repositories-token.outputs.token || inputs.token }}
+        GIT_TERMINAL_PROMPT: 0
+      run: |
+        git config --global --replace-all url."https://x-access-token:${GH_READ_TOKEN}@github.com/".insteadOf git@github.com:
+        git config --global --add url."https://x-access-token:${GH_READ_TOKEN}@github.com/".insteadOf "https://github.com/"
 
     - name: Restore Code Cache
+      if: inputs.restore-code-cache == 'true'
       uses: actions/cache/restore@v3
       id: cache
       with:

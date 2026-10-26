@@ -2,6 +2,11 @@ name: Release Flask to Stacks
 on:
   workflow_call:
     inputs:
+      related-repositories:
+        description: Comma-separated or newline-separated repository names in the caller organization requiring read access.
+        type: string
+        required: false
+        default: ""
       cache_paths:
         type: string
         required: false
@@ -50,6 +55,10 @@ on:
         default: heathmont
 
     secrets:
+      RO_APP_ID:
+        required: false
+      RO_APP_KEY:
+        required: false
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
       STACKS_TOKEN:
@@ -69,9 +78,10 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.4.5
+    uses: coingaming/.github/.github/workflows/build.yml@v1.4.6
     secrets: inherit
     with:
+      related-repositories: ${{ inputs.related-repositories }}
       mix-env: ${{ inputs.mix-env }}
       cache_paths: ${{ inputs.cache_paths }}
       elixir-version: ${{ inputs.elixir-version }}
@@ -98,14 +108,16 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.4.5
+        uses: coingaming/.github/actions/prepare@v1.4.6
         with:
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
           elixir-code-path: ${{ inputs.elixir-code-path }}
-          token: ${{ github.token }}
+          related-repositories: ${{ inputs.related-repositories }}
+          ro-app-id: ${{ secrets.RO_APP_ID }}
+          ro-app-key: ${{ secrets.RO_APP_KEY }}
 
           #  - name: Use Node.js
           #    uses: actions/setup-node@v3
@@ -156,7 +168,7 @@ jobs:
         env:
           STACKS_TOKEN: ${{ secrets.STACKS_TOKEN || github.token }}
         run: |
-          git clone "https://x-access-token:${STACKS_TOKEN}@github.com/${{ inputs.stacks-repo }}.git" stacks
+          git -c http.https://github.com/.extraheader= clone "https://x-access-token:${STACKS_TOKEN}@github.com/${{ inputs.stacks-repo }}.git" stacks
           cd stacks
           git checkout ${{ inputs.stacks-branch-name }}
 
@@ -169,4 +181,4 @@ jobs:
         working-directory: stacks
         run: |
           git commit -am "upgraded ${{inputs.service-name }} service with  ${{ env.IMAGE }}"
-          git push origin refs/heads/${{ inputs.stacks-branch-name }}:refs/heads/${{ inputs.stacks-branch-name }}
+          git -c http.https://github.com/.extraheader= push origin refs/heads/${{ inputs.stacks-branch-name }}:refs/heads/${{ inputs.stacks-branch-name }}

@@ -2,6 +2,11 @@ name: Manual release to HEX
 on:
   workflow_call:
     inputs:
+      related-repositories:
+        description: Comma-separated or newline-separated repository names in the caller organization requiring read access.
+        type: string
+        required: false
+        default: ""
       version:
         type: string
         required: true
@@ -26,6 +31,10 @@ on:
         required: false
         default: "."
     secrets:
+      RO_APP_ID:
+        required: false
+      RO_APP_KEY:
+        required: false
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
 
@@ -42,9 +51,10 @@ env:
 jobs:
   build:
     name: Build
-    uses: coingaming/.github/.github/workflows/build.yml@v1.4.5
+    uses: coingaming/.github/.github/workflows/build.yml@v1.4.6
     secrets: inherit
     with:
+      related-repositories: ${{ inputs.related-repositories }}
       ref: ${{ inputs.version }}
       mix-env: ${{ inputs.mix-env }}
       cache_paths: ${{ inputs.cache_paths }}
@@ -63,14 +73,16 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.4.5
+        uses: coingaming/.github/actions/prepare@v1.4.6
         with:
           ref: ${{ inputs.version }}
           mix-env: ${{ inputs.mix-env }}
           cache_paths: ${{ inputs.cache_paths }}
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
-          token: ${{ github.token }}
+          related-repositories: ${{ inputs.related-repositories }}
+          ro-app-id: ${{ secrets.RO_APP_ID }}
+          ro-app-key: ${{ secrets.RO_APP_KEY }}
           elixir-code-path: ${{ inputs.elixir-code-path }}
 
       - name: Prepare VERSION file
