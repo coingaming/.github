@@ -5,6 +5,9 @@ on:
       - main
 
 
+permissions:
+  contents: read
+
 defaults:
   run:
     shell: bash
@@ -17,6 +20,10 @@ jobs:
 
   release:
     name: Release
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     needs: build
     runs-on: ubuntu-20.04
     env:
@@ -27,7 +34,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ github.token }}
 
       - name: Set up Elixir
         id: beam
@@ -57,4 +64,6 @@ jobs:
         run:  npm install semantic-release @semantic-release/git @semantic-release/exec @semantic-release/changelog @heathmont/semantic-release-elixir-hex
 
       - name: Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: npx semantic-release --extends @heathmont/semantic-release-elixir-hex

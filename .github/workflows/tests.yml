@@ -26,6 +26,9 @@ on:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
 
+permissions:
+  contents: read
+
 defaults:
   run:
     shell: bash
@@ -74,7 +77,7 @@ jobs:
           cache_paths: ${{ inputs.cache_paths }}
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
-          token: ${{ secrets.GH_TOKEN != '' && secrets.GH_TOKEN || github.token }}
+          token: ${{ github.token }}
           elixir-code-path: ${{ inputs.elixir-code-path }}
 
       - name: DB setup
@@ -92,4 +95,4 @@ jobs:
      # - name: Coverage
      #   run: mix coveralls.github
      #   env:
-     #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+     #     GITHUB_TOKEN: ${{ github.token }}
