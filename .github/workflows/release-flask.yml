@@ -52,6 +52,12 @@ on:
     secrets:
       HEX_ORGANIZATION_COINGAMING_KEY:
         required: true
+      STACKS_TOKEN:
+        description: Token with write access to the Stacks repository; defaults to the built-in GitHub token.
+        required: false
+
+permissions:
+  contents: read
 
 defaults:
   run:
@@ -74,6 +80,8 @@ jobs:
 
   release:
     name: Release
+    permissions:
+      contents: write
     needs: build
     runs-on: ubuntu-24.04
     defaults:
@@ -97,7 +105,7 @@ jobs:
           elixir-version: ${{ inputs.elixir-version }}
           otp-version: ${{ inputs.otp-version }}
           elixir-code-path: ${{ inputs.elixir-code-path }}
-          token: ${{ secrets.GH_TOKEN != '' && secrets.GH_TOKEN || github.token }}
+          token: ${{ github.token }}
 
           #  - name: Use Node.js
           #    uses: actions/setup-node@v3
@@ -109,7 +117,7 @@ jobs:
 
       - name: Auhtorize github.com
         env:
-          GH_PAT: ${{ secrets.GH_TOKEN }}
+          GH_PAT: ${{ github.token }}
           GIT_TERMINAL_PROMPT: 0
         run: |
           git config --global user.email "actions@github.com"
@@ -145,8 +153,10 @@ jobs:
 
       - name: Clone Stacks Repo
         working-directory: .
+        env:
+          STACKS_TOKEN: ${{ secrets.STACKS_TOKEN || github.token }}
         run: |
-          git clone https://${{secrets.GH_TOKEN }}@github.com/${{ inputs.stacks-repo }}.git stacks
+          git clone "https://x-access-token:${STACKS_TOKEN}@github.com/${{ inputs.stacks-repo }}.git" stacks
           cd stacks
           git checkout ${{ inputs.stacks-branch-name }}
 
