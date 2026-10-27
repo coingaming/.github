@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - name: Prepare repo and env
-        uses: coingaming/.github/actions/prepare@v1.4.6
+        uses: coingaming/.github/actions/prepare@v1.4.7
         with:
           ref: ${{ inputs.ref }}
           mix-env: ${{ inputs.mix-env }}
