@@ -116,7 +116,9 @@ jobs:
             ${{ secrets.SSH_KEYS }}
 
       - name: Install protoc
-        run: sudo apt-get install protobuf-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
 
       - name: Add coingaming organization
         if: steps.deps-cache.outputs.cache-hit != 'true' && steps.code-cache.outputs.cache-hit != 'true'

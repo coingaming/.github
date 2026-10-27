@@ -95,7 +95,9 @@ jobs:
 
 
       - name: Install protoc
-        run: sudo apt-get install protobuf-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
 
       - name: Format
         if: ${{ inputs.check-format }}
